@@ -1,0 +1,44 @@
+<!--
+TO DO:
+add swipe support
+add images and genres
+remove login details from code (:
+sanitize values from responses!
+support languages
+things marked as TO DO in the source
+-->	
+
+<script src="test.js"></script>
+<link rel="stylesheet" href="test.css">
+
+<body onload="loadHandler()">
+
+<div id="controls">
+	<select id="filter">
+		<option value="popular">פופולריים</option>
+		<option value="fav">המועדפים שלי</option>
+		<option value="playingNow">יצאו לקולנוע לפני לכל היותר</option>
+		<option value="rated">עם דירוג של לפחות</option>
+	</select>
+
+	<select id="released">
+		<option value="1">שבוע</option>
+		<option value="2">שבועיים</option>
+		<option value="4">4 שבועות</option>
+		<option value="8">8 שבועות</option>
+	</select>
+
+	<select id="minAvgVote">
+		<option value="6">6</option>
+		<option value="7">7</option>
+		<option value="8">8</option>
+	</select>
+</div>
+
+<div id="results"></div>
+
+<div id="movieDetails" style="display: none"></div>
+
+</body>
+
+
