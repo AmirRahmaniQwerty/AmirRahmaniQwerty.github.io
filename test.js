@@ -565,9 +565,15 @@ function onOk(e) {
 }
 function setSizes() {
 	var top = 80;
-	resultsElem.style.top = top + "px";
+	if(resultsElem != null) {
+		resultsElem.style.top = top + "px";
+		resultsElem.style.height = movieListHeight + "px"
+	}
+	if(movieDetailsElem != null) {
+		var w = Math.min(window.innerWidth * 0.8, 600);
+		movieDetailsElem.style.width = w + "px";
+	}
 	movieListHeight = window.innerHeight - top - 10;
-	resultsElem.style.height = movieListHeight + "px"
 	nDisplayedItems = (movieListHeight / movieRowHeight) | 0;
 	
 	scrollToItem(getIsFavs());
