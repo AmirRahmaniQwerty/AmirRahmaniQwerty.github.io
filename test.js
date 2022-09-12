@@ -158,7 +158,7 @@ function displayResults(isFavs) {
 		obj = arr[i];
 		if(obj != null) {
 			rowHtml = '<div id="item_' + obj.id + '" class="itemRow" onclick="onClickItem(' + i + ')">'; 
-			rowHtml += '  <div class="itemTitle">' + i + ": " + obj.title + '</div>';
+			rowHtml += '  <div class="itemTitle">' /*+ i + ": "*/ + obj.title + '</div>';
 			rowHtml += '  <div class="itemDetails">';
 			rowHtml += '    דירוג: ' + obj.vote_average + ', פופולריות: ' + obj.popularity + ', תאריך יציאה: ' + obj.release_date
 			rowHtml += '  </div>';
