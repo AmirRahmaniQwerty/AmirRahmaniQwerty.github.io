@@ -564,7 +564,7 @@ function onOk(e) {
 	}
 }
 function setSizes() {
-	var top = 40;
+	var top = 80;
 	resultsElem.style.top = top + "px";
 	movieListHeight = window.innerHeight - top - 10;
 	resultsElem.style.height = movieListHeight + "px"
