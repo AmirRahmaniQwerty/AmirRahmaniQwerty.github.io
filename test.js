@@ -827,7 +827,7 @@ function addRow(){
 
 function handleGesture() {
 	if (touchendY < touchstartY) {
-		document.body.style.backgroundColor = "rgb(230, 230, 230)";
+		document.body.style.backgroundColor = "rgb(10, 230, 230)";
 	}
 }
 
