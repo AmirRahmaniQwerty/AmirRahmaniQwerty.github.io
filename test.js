@@ -7,17 +7,22 @@ var userName = "qwerty090922"
 var password = "qwerty1234"
 var accountId;
 accountId = "14682669"; // TO DO: get from call to account details WS
-var	posterSizes;
+var posterSizes;
 var secureBaseUrl;
 var region = "IL";
 var language = "he-IL";
 var minVoteCount = 100;
 var validatedRequestToken;
 var sessionId;
-var lastRightArrowPressTime = 0;
-var iFocusedItem = 0;
+//var lastRightArrowPressTime = 0;
+//var iFocusedItem = 0;
 var iGlobalFocusedItem = 0;
+var iBottomItem = -1;
+var isWaitingForPageAtTop = false;
+var isWaitingForPageAtBottom = false;
+var maxScrollY = 0;
 
+var mustHandleArrowKeyPresses = false;
 var mustResetList = false;
 
 var addFavText = "הוסף למועדפים";
@@ -30,6 +35,7 @@ var isFavsComplete = false;
 var nMovies = 0;
 var nFavs = 0;
 
+var controlsElem;
 var filterElem;
 var releasedElem;
 var minAvgVoteElem;
@@ -42,11 +48,7 @@ var isDetailsViewVisible = false;
 
 var movieParams;
 
-var movieListHeight = -1;
-var movieRowHeight = 50;
-var iTopItem = 0;
-var nDisplayedItems = 3;
-var pageSize = 20; // TO DO: make dynamic
+var pageSize = 20; // TO DO: read from response in case it ever changes
 
 var minStoredPage = 99999;
 var maxStoredPage = -1;
@@ -70,59 +72,6 @@ function showErrorMessage(errorMessage) {
 	}
 }
 
-function scrollToItem(isFavs) {
-	if(isFavs) {
-		displayResults(true);
-	}
-	else {
-		checkMin();
-	}
-}	
-
-function checkMin() {	
-	// TO DO: limit the number of pages stored, to save RAM 
-	var minNeededPage = (iTopItem / pageSize) | 0 + 1;
-	
-	if(minNeededPage < minStoredPage) {
-		getMoviesPage(minNeededPage, onSuccess);
-		
-		function onSuccess(responseObj) {
-			if(responseObj.page + 1 < minStoredPage) {
-				getMoviesPage(responseObj.page + 1, onSuccess);
-			}
-			else {
-				minStoredPage = minNeededPage;
-				checkMax();
-			}
-		}
-	}
-	else {
-		checkMax();
-	}
-}
-
-function checkMax() {	
-	// TO DO: limit the number of pages stored, to save RAM 
-	var maxNeededPage = ((iTopItem + nDisplayedItems - 1) / pageSize) | 0 + 1;
-	
-	if(maxNeededPage > maxStoredPage) {
-		getMoviesPage(maxStoredPage + 1, onSuccess);
-		
-		function onSuccess(responseObj) {
-			if(responseObj.page < maxNeededPage) {
-				getMoviesPage(responseObj.page + 1, onSuccess)
-			}
-			else {
-				maxStoredPage = maxNeededPage;
-				displayResults(false);
-			}
-		}
-	}
-	else {
-		displayResults(false);
-	}
-}
-
 function pushResults(isFavs, responseObj) {
 	if(responseObj.results == null || responseObj.results.length == null) {
 		return;
@@ -141,20 +90,74 @@ function pushResults(isFavs, responseObj) {
 
 function onClickItem(iItem) {
 	if(!isDetailsViewVisible) {
-		iGlobalFocusedItem = iTopItem + iItem;
-		setItemFocus(iItem);
-		
-		openDetailsView();
+		openDetailsView(iItem);
 	}
 }
 
-function displayResults(isFavs) {
-	var obj;
-	var arr = isFavs ? favs : movies;
-	var rowsHtml = [];
-	var rowHtml;
+function createRowHTML(iRow, onSuccess) { // TO DO: maybe create an element instead
+	var isFavs = getIsFavs();
 	
-	for(var i = iTopItem; i < iTopItem + nDisplayedItems && i < arr.length; i++) {
+	if(isFavs) {
+		reallyCreateRowHTML(iRow, onSuccess);
+		return;
+	}
+	
+	var iNeededPage = Math.floor(iRow / pageSize);
+
+	if(iNeededPage < minStoredPage) {
+		if(!isWaitingForPageAtTop) {
+			isWaitingForPageAtTop = true;
+			getMoviesPage(iNeededPage, function () {
+				//minStoredPage = iNeededPage;
+				isWaitingForPageAtTop = false;
+				reallyCreateRowHTML(iRow, onSuccess);
+			});
+		}
+	}
+	else if(iNeededPage > maxStoredPage) {
+		if(!isWaitingForPageAtBottom) {
+			isWaitingForPageAtBottom = true;
+			getMoviesPage(iNeededPage, function () {
+				//maxStoredPage = iNeededPage;
+				isWaitingForPageAtBottom = false;
+				reallyCreateRowHTML(iRow, onSuccess);
+			});
+		}
+	}
+	else {
+		reallyCreateRowHTML(iRow, onSuccess);
+	}
+	
+	function reallyCreateRowHTML(iRow, onSuccess) {
+		var isFavs = getIsFavs();
+		var arr = isFavs ? favs : movies;
+		var rowHtml = "";
+
+		var obj = arr[iRow];
+		if(obj != null) {
+			rowHtml = '<div id="item_' + obj.id + '" class="itemRow" onclick="onClickItem(' + iRow + ')">' +
+						'  <div class="itemTitle">' + iRow + ": " + obj.title + '</div>' +
+						'  <div class="itemDetails">' +
+						'    דירוג: ' + obj.vote_average + ', פופולריות: ' + obj.popularity + ', תאריך יציאה: ' + obj.release_date +
+						'  </div>' +
+					'</div>';
+			
+			if(onSuccess != null) {
+				onSuccess(rowHtml);
+			}
+		}
+	}
+}
+
+function addRows(fromRow, toRow) {
+	var isFavs = getIsFavs();
+	var arr = isFavs ? favs : movies;
+	
+	var obj;
+	var rowHtml;
+	var rowsHtml = [];
+
+	for(var i = fromRow; i <= toRow; i++) {
 		obj = arr[i];
 		if(obj != null) {
 			rowHtml = '<div id="item_' + obj.id + '" class="itemRow" onclick="onClickItem(' + i + ')">'; 
@@ -168,18 +171,47 @@ function displayResults(isFavs) {
 		}
 	}
 	
-	if(rowsHtml.length > 0) {
-		resultsElem.innerHTML = rowsHtml.join("\n");
-		setItemFocus(iGlobalFocusedItem - iTopItem);
-	}
-	else {
-		if(isFavs) {
-			resultsElem.innerHTML = "אין לך סרטים מועדפים";
+	if(resultsElem != null) {
+		if(rowsHtml.length > 0) {
+			resultsElem.insertAdjacentHTML("beforeend", rowsHtml.join("\n"));
 		}
 		else {
-			resultsElem.innerHTML = "לא נמצאו סרטים";
+			if(fromRow == 0) {
+				if(isFavs) {
+					resultsElem.innerHTML = "אין לך סרטים מועדפים";
+				}
+				else {
+					resultsElem.innerHTML = "לא נמצאו סרטים";
+				}
+			}
 		}
 	}
+}
+
+function maybeAddRow() {
+	if(window.innerHeight > document.documentElement.scrollHeight - 5) {
+		if(resultsElem != null) {
+			createRowHTML(++iBottomItem, function(html) {
+				if(html != "") {
+					resultsElem.insertAdjacentHTML("beforeend", html);
+					setTimeout(maybeAddRow, 1000);
+				}
+			})
+		}
+	}
+	else {
+		console.log("enough");
+	}
+}
+
+function displayResults(isFavs) {
+	var isFavs = getIsFavs();
+	var arr = isFavs ? favs : movies;
+	var nItems = isFavs ? nFavs : nMovies;
+	var html;
+	
+	maybeAddRow();
+	
 }
 
 function movie(id, title, overview, popularity, vote_average, poster_path, genre_ids, release_date) {
@@ -196,11 +228,11 @@ function movie(id, title, overview, popularity, vote_average, poster_path, genre
 function getAllFavs(onSuccess) {
 	isFavsComplete = false;
 	favs = [];
-	getFavsPage(1, onSuccess);
+	getFavsPage(0, onSuccess);
 }
 
 function getAndFillMovies() {
-	getMoviesPage(1, onSuccess);
+	getMoviesPage(0, onSuccess);
 	
 	function onSuccess() {
 		displayResults(false);
@@ -208,7 +240,7 @@ function getAndFillMovies() {
 }
 
 function getMoviesPage(iPage, onSuccess) {
-	if(!callTmdbMethod(false, "GET", "discover/movie", movieParams + "&page=" + iPage, null, onMoviesSuccess)) {
+	if(!callTmdbMethod(false, "GET", "discover/movie", movieParams + "&page=" + (iPage + 1), null, onMoviesSuccess)) {
 		return;
 	}
 	
@@ -224,10 +256,7 @@ function getMoviesPage(iPage, onSuccess) {
 			maxStoredPage = iPage;
 		}
 		
-		console.log("page: " + responseObj.page + " of " + responseObj.total_pages);
-		console.log("popularity: " + responseObj.results[0].popularity);
-		console.log("vote_average: " + responseObj.results[0].vote_average);
-		console.log("--------");
+		console.log("page: " + (responseObj.page - 1) + " (zero-based) of " + responseObj.total_pages);
 
 		if(onSuccess != null) {
 			onSuccess(responseObj);
@@ -239,7 +268,7 @@ function getMoviesPage(iPage, onSuccess) {
 }
 
 function getFavsPage(iPage, onSuccess) {
-	if(!callTmdbMethod(true, "GET", "account/" + accountId + "/favorite/movies", "language=" + language + "&sort_by=created_at.asc&page=" + iPage + "&session_id=" + sessionId, null, onFavsSuccess)) {
+	if(!callTmdbMethod(true, "GET", "account/" + accountId + "/favorite/movies", "language=" + language + "&sort_by=created_at.asc&page=" + (iPage + 1) + "&session_id=" + sessionId, null, onFavsSuccess)) {
 		return;
 	}
 	
@@ -247,8 +276,8 @@ function getFavsPage(iPage, onSuccess) {
 		nFavs = responseObj.total_results;
 		pushResults(true, responseObj);
 		
-		if(responseObj.page < responseObj.total_pages) {
-			getFavsPage(responseObj.page + 1, onSuccess);
+		if(responseObj.page + 1 < responseObj.total_pages) {
+			getFavsPage(responseObj.page /*+ 1*/, onSuccess);
 		}
 		else {
 			isFavsComplete = true;
@@ -277,7 +306,7 @@ function createSession() {
 		
 		function onValidateSuccess(responseObj) {
 			validatedRequestToken = responseObj.request_token;
-			// *** TO DO: set a timer to renew validation shortly before it expires
+			// *** TO DO: renew validation when necessary
 
 			var body = {
 				"request_token": validatedRequestToken
@@ -373,10 +402,18 @@ function formattedTodayPlusWeeks(nWeeks) {
 }
 
 function resetMovieList() {
+	iBottomItem = -1;
 	iTopItem = 0;
 	minStoredPage = 99999;
 	maxStoredPage = -1;
 	iGlobalFocusedItem = 0;
+	
+	window.scrollTo(0, 0);
+	maxScrollY = 0;
+	
+	if(resultsElem != null) {
+		resultsElem.innerHTML = "";
+	}
 
 	movies = [];
 	movieParams = "";
@@ -497,7 +534,7 @@ function toggleFav(id, isItemFav) {
 	}
 }
 
-function openDetailsView() {
+function openDetailsView(iItem) {
 	if(movieDetailsElem == null) {
 		return;
 	}
@@ -510,7 +547,7 @@ function openDetailsView() {
 	var rowHtml;
 	var isItemFav;
 	
-	obj = arr[iGlobalFocusedItem];
+	obj = arr[iItem];
 	if(obj != null) {
 		isItemFav = favs.filter(function(favObj) { return favObj.id == obj.id }).length > 0;
 		
@@ -532,7 +569,6 @@ function openDetailsView() {
 	if(rowsHtml.length > 0) {
 		movieDetailsElem.innerHTML = rowsHtml.join("\n");
 	}
-	
 }
 
 function onReleasedChanged() {
@@ -564,19 +600,6 @@ function onOk(e) {
 	}
 }
 function setSizes() {
-	var top = 80;
-	if(resultsElem != null) {
-		resultsElem.style.top = top + "px";
-		resultsElem.style.height = movieListHeight + "px"
-	}
-	if(movieDetailsElem != null) {
-		var w = Math.min(window.innerWidth * 0.8, 600);
-		movieDetailsElem.style.width = w + "px";
-	}
-	movieListHeight = window.innerHeight - top - 10;
-	nDisplayedItems = (movieListHeight / movieRowHeight) | 0;
-	
-	scrollToItem(getIsFavs());
 }
 
 function onResized() {
@@ -588,6 +611,8 @@ function onOrientationChanged() {
 }
 
 function setItemFocus(iNewFocusedItem) {
+	return;
+	/*
 	var elem;
 	
 	elem = document.querySelectorAll(".itemRow")[iFocusedItem];
@@ -601,6 +626,7 @@ function setItemFocus(iNewFocusedItem) {
 	if(elem != null) {
 		elem.className += " focused";
 	}
+	*/
 }
 
 
@@ -733,19 +759,27 @@ function onWheel(e) {
 function onKeyDown(e) {
 	switch(e.key) {
 		case "ArrowLeft":
-			onLeft(e);
+			if(mustHandleArrowKeyPresses) {
+				onLeft(e);
+			}
 			break;
 
 		case "ArrowRight":
-			onRight(e);
+			if(mustHandleArrowKeyPresses) {
+				onRight(e);
+			}
 			break;
 			
 		case "ArrowDown":
-			onDown(e);
+			if(mustHandleArrowKeyPresses) {
+				onDown(e);
+			}
 			break;
 			
 		case "ArrowUp":
-			onUp(e);
+			if(mustHandleArrowKeyPresses) {
+				onUp(e);
+			}
 			break;
 			
 		case "Enter":
@@ -768,28 +802,72 @@ function onKeyDown(e) {
 	}
 }
 
+function createPost(){
+	if(resultsElem != null) {
+		createRowHTML(++iBottomItem, function(html) {
+			if(html == undefined) {
+				console.log("what?");
+			}
+			if(html != "") {
+				resultsElem.insertAdjacentHTML("beforeend", html);
+				setTimeout(maybeAddRow, 1000);
+			}
+			else {
+				//resultsElem.insertAdjacentHTML("beforeend", "<h1>enddddddddddddddddddd</h1>");
+			}
+		})
+	}
+	/*
+	const post = document.createElement("div");
+	post.className = "text";
+	post.innerHTML = `<h1>Lorem ipsum dolor sit amet</h1>
+	<p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Doloremque eos, atque sed saepe
+	   tempore, sequi qui excepturi voluptate ut perspiciatis culpa sit harum, corrupti ullam 
+	   voluptatibus obcaecati sint dignissimos quas.</p>`;
+	resultsElem.appendChild(post);
+	}
+	*/
+}
+
 function loadHandler() {
-	window.addEventListener("resize", onResized);
-	window.addEventListener("orientationchange", onOrientationChanged);
-	window.addEventListener("keydown", onKeyDown);
-	window.addEventListener("wheel", onWheel);
-	
+	controlsElem = document.querySelector("#controls");
 	resultsElem = document.querySelector("#results");
 	movieDetailsElem = document.querySelector("#movieDetails");
 	filterElem = document.querySelector("#filter");
 	releasedElem = document.querySelector("#released");
 	minAvgVoteElem = document.querySelector("#minAvgVote");
 	
+	window.addEventListener("resize", onResized);
+	window.addEventListener("orientationchange", onOrientationChanged);
+	window.addEventListener("keydown", onKeyDown);
+	//window.addEventListener("wheel", onWheel);
+	
+	window.addEventListener("scroll", function (e) {
+		if(window.scrollY > maxScrollY) {
+			if(isWaitingForPageAtBottom) {
+				console.log("isWaitingForPageAtBottom");
+				e.preventDefault();
+			}
+			else {
+				var scrollHeight = document.documentElement.scrollHeight;
+				if(window.scrollY + window.innerHeight > scrollHeight - 5){
+					setTimeout(createPost, 100);
+				}
+				maxScrollY = window.scrollY;
+			}
+		}
+	});
+
 	if(filterElem != null) {
-		filterElem.addEventListener('change', onFilterChanged);
+		filterElem.addEventListener("change", onFilterChanged);
 	}
 	
 	if(releasedElem != null) {
-		releasedElem.addEventListener('change', onReleasedChanged);
+		releasedElem.addEventListener("change", onReleasedChanged);
 	}
 	
 	if(minAvgVoteElem != null) {
-		minAvgVoteElem.addEventListener('change', onMinAvgVoteChanged);
+		minAvgVoteElem.addEventListener("change", onMinAvgVoteChanged);
 	}
 	
 	setSizes();
