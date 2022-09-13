@@ -70,7 +70,7 @@ select {
     width: 150px;
     height: 70px;
     margin-bottom: 30px;
-    opacity: 0;
+    opacity: 0.4;
 }
 .ball{
     width: 30px;
