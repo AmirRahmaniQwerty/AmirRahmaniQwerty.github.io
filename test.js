@@ -825,9 +825,22 @@ function addRow(){
 	}
 }
 
-function handleGesture() {
+function handleGesture(e) {
 	if (touchendY < touchstartY) {
 		document.body.style.backgroundColor = "rgb(10, 230, 230)";
+			if(isWaitingForPageAtBottom) {
+				console.log("isWaitingForPageAtBottom");
+				e.preventDefault();
+			}
+			else {
+				document.body.style.backgroundColor = "rgb(230, 230, 10)";				
+				var scrollHeight = document.documentElement.scrollHeight;
+				if(window.scrollY + window.innerHeight > scrollHeight - 5){
+					setTimeout(addRow, 100);
+				}
+				maxScrollY = window.scrollY;
+			}
+		
 	}
 }
 
@@ -869,7 +882,7 @@ function loadHandler() {
 		touchendX = e.changedTouches[0].screenX;
 		touchendY = e.changedTouches[0].screenY;
 		
-		handleGesture(touchstartX, touchstartY, touchendX, touchendY);
+		handleGesture(e, touchstartX, touchstartY, touchendX, touchendY);
 	}, false);
 	
 	/*
