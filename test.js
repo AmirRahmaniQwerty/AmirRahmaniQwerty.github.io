@@ -859,7 +859,20 @@ function loadHandler() {
 			}
 		}
 	});
+
+	window.addEventListener("touchstart", function(e) {
+		touchstartX = e.changedTouches[0].screenX;
+		touchstartY = e.changedTouches[0].screenY;
+	}, false);
+
+	window.addEventListener("touchend", function(e) {
+		touchendX = e.changedTouches[0].screenX;
+		touchendY = e.changedTouches[0].screenY;
+		
+		handleGesture(touchstartX, touchstartY, touchendX, touchendY);
+	}, false);
 	
+	/*
 	window.addEventListener("touchstart", function(e) {
 	    touchstartX = e.screenX;
 	    touchstartY = e.screenY;
@@ -870,6 +883,7 @@ function loadHandler() {
 	    touchendY = e.screenY;
 	    handleGesture();
 	}, false); 
+	*/
 	
 
 	if(filterElem != null) {
