@@ -837,7 +837,7 @@ function handleGesture(e) {
 				document.body.style.backgroundColor = "rgb(230, 230, 10)";
 				document.querySelector(".itemRow").innerText = window.scrollY + " " + window.innerHeight + " " + document.documentElement.scrollHeight;
 				var scrollHeight = document.documentElement.scrollHeight;
-				if(window.scrollY + window.innerHeight > scrollHeight - 5){
+				if(window.scrollY + touchstartY - touchendY + window.innerHeight > scrollHeight - 5){
 					setTimeout(addRow, 100);
 				}
 				maxScrollY = window.scrollY;
@@ -884,7 +884,7 @@ function loadHandler() {
 		touchendX = e.changedTouches[0].screenX;
 		touchendY = e.changedTouches[0].screenY;
 		
-		handleGesture(e, touchstartX, touchstartY, touchendX, touchendY);
+		handleGesture(e);
 	}, false);
 	
 	/*
