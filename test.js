@@ -142,7 +142,7 @@ function createRowHTML(iRow, onSuccess) { // TO DO: maybe create an element inst
 		var obj = arr[iRow];
 		if(obj != null) {
 			rowHtml = '<div id="item_' + obj.id + '" class="itemRow" onclick="onClickItem(' + iRow + ')">' +
-						'  <div class="itemTitle">' + iRow + ": " + obj.title + '</div>' +
+						'  <div class="itemTitle">' + (iRow + 1) " " + obj.title + '</div>' +
 						'  <div class="itemDetails">' +
 						'    דירוג: ' + obj.vote_average + ', פופולריות: ' + obj.popularity + ', תאריך יציאה: ' + obj.release_date +
 						'  </div>' +
