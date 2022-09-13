@@ -835,7 +835,7 @@ function handleGesture(e) {
 			}
 			else {
 				document.body.style.backgroundColor = "rgb(230, 230, 10)";
-				document.querySelector(".itemRow").innerText = window.scrollY + " " + window.innerHeight + " " + document.documentElement.scrollHeight);
+				document.querySelector(".itemRow").innerText = window.scrollY + " " + window.innerHeight + " " + document.documentElement.scrollHeight;
 				var scrollHeight = document.documentElement.scrollHeight;
 				if(window.scrollY + window.innerHeight > scrollHeight - 5){
 					setTimeout(addRow, 100);
