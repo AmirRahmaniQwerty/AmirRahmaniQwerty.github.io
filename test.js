@@ -194,7 +194,7 @@ function maybeAddRow() {
 			createRowHTML(++iBottomItem, function(html) {
 				if(html != "") {
 					resultsElem.insertAdjacentHTML("beforeend", html);
-					setTimeout(maybeAddRow, 1000);
+					setTimeout(maybeAddRow, 10);
 				}
 			})
 		}
