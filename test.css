@@ -45,7 +45,7 @@ select {
 	position: fixed;
 	top: 50px;
 	width: 70%;
-	height: 90%;
+	max-height: 90%;
 	background-color: rgb(229, 235, 255);
 	border: 2px black solid;
 	padding: 3px;
