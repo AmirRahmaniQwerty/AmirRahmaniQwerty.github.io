@@ -827,21 +827,22 @@ function addRow(){
 
 function handleGesture(e) {
 	if (touchendY < touchstartY) {
-		document.body.style.backgroundColor = "rgb(10, 230, 230)";
-			if(isWaitingForPageAtBottom) {
-				document.body.style.backgroundColor = "rgb(230, 10, 230)";
-				console.log("isWaitingForPageAtBottom");
-				e.preventDefault();
+		//document.body.style.backgroundColor = "rgb(10, 230, 230)";
+		if(isWaitingForPageAtBottom) {
+			//document.body.style.backgroundColor = "rgb(230, 10, 230)";
+			console.log("isWaitingForPageAtBottom");
+			e.preventDefault();
+		}
+		else {
+			//document.body.style.backgroundColor = "rgb(230, 230, 10)";
+			//document.querySelector(".itemRow").innerText = window.scrollY + " " + window.innerHeight + " " + document.documentElement.scrollHeight;
+			var scrollHeight = document.documentElement.scrollHeight;
+			if(window.scrollY + touchstartY - touchendY + window.innerHeight > scrollHeight - 5){
+				// TO DO: scroll down based on gesture
+				setTimeout(addRow, 100);
 			}
-			else {
-				document.body.style.backgroundColor = "rgb(230, 230, 10)";
-				document.querySelector(".itemRow").innerText = window.scrollY + " " + window.innerHeight + " " + document.documentElement.scrollHeight;
-				var scrollHeight = document.documentElement.scrollHeight;
-				if(window.scrollY + touchstartY - touchendY + window.innerHeight > scrollHeight - 5){
-					setTimeout(addRow, 100);
-				}
-				maxScrollY = window.scrollY;
-			}
+			maxScrollY = window.scrollY;
+		}
 		
 	}
 }
