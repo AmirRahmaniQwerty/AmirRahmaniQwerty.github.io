@@ -22,6 +22,12 @@ var isWaitingForPageAtTop = false;
 var isWaitingForPageAtBottom = false;
 var maxScrollY = 0;
 
+var touchstartX = 0;
+var touchstartY = 0;
+var touchendX = 0;
+var touchendY = 0;
+
+
 var mustHandleArrowKeyPresses = false;
 var mustResetList = false;
 
@@ -802,7 +808,7 @@ function onKeyDown(e) {
 	}
 }
 
-function createPost(){
+function addRow(){
 	if(resultsElem != null) {
 		createRowHTML(++iBottomItem, function(html) {
 			if(html == undefined) {
@@ -817,16 +823,12 @@ function createPost(){
 			}
 		})
 	}
-	/*
-	const post = document.createElement("div");
-	post.className = "text";
-	post.innerHTML = `<h1>Lorem ipsum dolor sit amet</h1>
-	<p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Doloremque eos, atque sed saepe
-	   tempore, sequi qui excepturi voluptate ut perspiciatis culpa sit harum, corrupti ullam 
-	   voluptatibus obcaecati sint dignissimos quas.</p>`;
-	resultsElem.appendChild(post);
+}
+
+function handleGesture() {
+	if (touchendY < touchstartY) {
+		document.body.style.backgroundColor = "rgb(230, 230, 230)";
 	}
-	*/
 }
 
 function loadHandler() {
@@ -851,12 +853,24 @@ function loadHandler() {
 			else {
 				var scrollHeight = document.documentElement.scrollHeight;
 				if(window.scrollY + window.innerHeight > scrollHeight - 5){
-					setTimeout(createPost, 100);
+					setTimeout(addRow, 100);
 				}
 				maxScrollY = window.scrollY;
 			}
 		}
 	});
+	
+	window.addEventListener("touchstart", function(e) {
+	    touchstartX = e.screenX;
+	    touchstartY = e.screenY;
+	}, false);
+
+	window.addEventListener("touchend", function(e) {
+	    touchendX = e.screenX;
+	    touchendY = e.screenY;
+	    handleGesture();
+	}, false); 
+	
 
 	if(filterElem != null) {
 		filterElem.addEventListener("change", onFilterChanged);
@@ -872,4 +886,5 @@ function loadHandler() {
 	
 	setSizes();
 }
+
 
