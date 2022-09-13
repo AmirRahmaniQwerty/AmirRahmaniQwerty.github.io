@@ -1,63 +1,103 @@
 
-	body {
-		 direction: rtl;
-		 font-size: 40px;
-	}
-	
-	select {
-		font-size: 40px;
-	}
-	
-	.itemTitle {
-		font-weight: bold;
-	}
-	
-	#closeButton {
-		font-size: 40px;
-		border: 1px black solid;
-	}
+body {
+	 direction: rtl;
+	 font-size: 40px;
+}
 
-	#results .itemRow {
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		overflow: hidden;
-		min-height: 90px;
-		cursor: pointer;
-	}
+select {
+	font-size: 40px;
+}
+
+.itemTitle {
+	font-weight: bold;
+}
+
+.loading {
+	visibility: hidden;
+}
+
+#closeButton {
+	border: 1px black solid;
+}
+
+#results .itemRow {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+	min-height: 90px;
+	cursor: pointer;
+}
+
+#movieDetails .itemTitle {
+	font-size: larger;
+	margin-bottom: 5px;
+}
+
+.itemOverview {
+	margin-bottom: 5px;
+}
+
+#results {
+	margin-top: 80px;
+}
+
+#movieDetails {
+	position: fixed;
+	top: 50px;
+	width: 70%;
+	height: 90%;
+	background-color: rgb(229, 235, 255);
+	border: 2px black solid;
+	padding: 3px;
+	z-index: 1;
+}
+
+#movieDetails input {
+	font-size: 40px;
+}
+
+#controls {
+	position: fixed;
+	left:20px;
+	top: 0px;
+}
+
+#released, #minAvgVote {
+	visibility: hidden
+}
 	
-	#movieDetails .itemTitle {
-		font-size: larger;
-		margin-bottom: 5px;
-	}
-	
-	.itemOverview {
-		margin-bottom: 5px;
-	}
-	
-	.itemRow.focused {
-		background-color: rgb(239, 228, 176);
-	}
-	
-	#results {
-		position: absolute;
-		top: 80px;
-	}
-	
-	#movieDetails {
-		position: absolute;
-		top: 50px;
-		width: 400px;
-		background-color: rgb(229, 235, 255);
-		border: 2px black solid;
-		padding: 3px;
-		z-index: 1;
-	}
-	
-	#movieDetails input {
-		font-size: 40px;
-	}
-	
-	#released, #minAvgVote {
-		visibility: hidden
-	}
+.loading{
+    width: 150px;
+    height: 70px;
+    margin-bottom: 30px;
+    opacity: 0;
+}
+.ball{
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: black;
+    margin: 0 10px;
+}
+.first{
+    animation: slide 2s ease-in-out infinite;
+    animation-delay: .1s;
+}
+.second{
+    animation: slide 2s ease-in-out infinite;
+    animation-delay: .5s;
+}
+.third{
+    animation: slide 2s ease-in-out infinite;
+    animation-delay: 1s;
+}
+
+@keyframes slide{
+    from{
+        transform: translateY(-30px);
+    }
+    to{
+        transform: translateY(0);
+    }
+}
 	
