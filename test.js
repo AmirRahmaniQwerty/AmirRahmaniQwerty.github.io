@@ -829,6 +829,7 @@ function handleGesture(e) {
 	if (touchendY < touchstartY) {
 		document.body.style.backgroundColor = "rgb(10, 230, 230)";
 			if(isWaitingForPageAtBottom) {
+				document.body.style.backgroundColor = "rgb(230, 10, 230)";
 				console.log("isWaitingForPageAtBottom");
 				e.preventDefault();
 			}
